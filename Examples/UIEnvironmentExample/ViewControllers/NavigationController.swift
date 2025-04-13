@@ -1,7 +1,7 @@
 import UIEnvironment
 import UIKit
 
-final class NavigationController: EnvironmentNavigationController {
+final class NavigationController: UIEnvironmentNavigationController {
     override func viewDidLoad() {
         super.viewDidLoad()
         interactivePopGestureRecognizer?.delegate = self

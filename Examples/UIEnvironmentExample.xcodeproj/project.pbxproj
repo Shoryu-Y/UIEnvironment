@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3489CCF32DABDA0D0039297D /* UIEnvironment in Frameworks */ = {isa = PBXBuildFile; productRef = 3489CCF22DABDA0D0039297D /* UIEnvironment */; };
 		3498C6DB2DAB9F41009A0C99 /* UIEnvironment in Frameworks */ = {isa = PBXBuildFile; productRef = 3498C6DA2DAB9F41009A0C99 /* UIEnvironment */; };
 /* End PBXBuildFile section */
 
@@ -27,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3489CCF32DABDA0D0039297D /* UIEnvironment in Frameworks */,
 				3498C6DB2DAB9F41009A0C99 /* UIEnvironment in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +73,7 @@
 			name = UIEnvironmentExample;
 			packageProductDependencies = (
 				3498C6DA2DAB9F41009A0C99 /* UIEnvironment */,
+				3489CCF22DABDA0D0039297D /* UIEnvironment */,
 			);
 			productName = UIEnvironmentExample;
 			productReference = 345C0EFD2DAA907E00D8BF36 /* UIEnvironmentExample.app */;
@@ -101,7 +104,7 @@
 			mainGroup = 345C0EF42DAA907E00D8BF36;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				3498C6D92DAB9F41009A0C99 /* XCLocalSwiftPackageReference "../../UIEnvironment" */,
+				3489CCF12DABDA0D0039297D /* XCLocalSwiftPackageReference "../../UIEnvironment" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 345C0EFE2DAA907E00D8BF36 /* Products */;
@@ -335,13 +338,17 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3498C6D92DAB9F41009A0C99 /* XCLocalSwiftPackageReference "../../UIEnvironment" */ = {
+		3489CCF12DABDA0D0039297D /* XCLocalSwiftPackageReference "../../UIEnvironment" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../../UIEnvironment;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		3489CCF22DABDA0D0039297D /* UIEnvironment */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = UIEnvironment;
+		};
 		3498C6DA2DAB9F41009A0C99 /* UIEnvironment */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = UIEnvironment;

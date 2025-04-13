@@ -1,3 +1,4 @@
+import os
 import UIKit
 
 @MainActor
@@ -12,7 +13,26 @@ public struct UIEnvironment<Value> {
             let keyPath = instance[keyPath: storageKeyPath].keyPath
             return instance._environmentValues[keyPath: keyPath]
         }
-        set {}
+        set {
+            #if DEBUG
+                if #available(iOS 14, *) {
+                    Logger().warning("""
+                    UIEnvironment: 
+                        Direct assignment to @UIEnvironment(\\.keyPath) is discouraged.
+                        Use environment(_:_:) instead.
+                    """)
+                } else {
+                    print("""
+                    UIEnvironment: 
+                        Direct assignment to @UIEnvironment(\\.keyPath) is discouraged.
+                        Use environment(_:_:) instead.
+                    """)
+                }
+            #endif
+
+            let keyPath = instance[keyPath: storageKeyPath].keyPath
+            instance._environmentValues[keyPath: keyPath] = newValue
+        }
     }
 
     @available(*, unavailable, message: "@UIEnvironment can only be applied to classes")
@@ -21,9 +41,9 @@ public struct UIEnvironment<Value> {
         set { fatalError() }
     }
 
-    private let keyPath: KeyPath<UIEnvironmentValues, Value>
+    private let keyPath: WritableKeyPath<UIEnvironmentValues, Value>
 
-    public init(_ keyPath: KeyPath<UIEnvironmentValues, Value>) {
+    public init(_ keyPath: WritableKeyPath<UIEnvironmentValues, Value>) {
         self.keyPath = keyPath
     }
 }
