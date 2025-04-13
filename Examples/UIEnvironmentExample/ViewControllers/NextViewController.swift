@@ -2,7 +2,7 @@ import UIEnvironment
 import UIKit
 
 final class NextViewController: UIViewController {
-    @UIEnvironment(\.theme) private var theme: Theme
+    @UIEnvironment(\.theme) private var theme
 
     override func viewDidLoad() {
         super.viewDidLoad()

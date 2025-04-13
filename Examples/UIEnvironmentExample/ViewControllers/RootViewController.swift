@@ -11,7 +11,7 @@ struct RootView: UIViewControllerRepresentable {
 }
 
 final class RootViewController: UIViewController {
-    @UIEnvironment(\.theme) private var theme: Theme
+    @UIEnvironment(\.theme) private var theme
 
     override func viewDidLoad() {
         super.viewDidLoad()

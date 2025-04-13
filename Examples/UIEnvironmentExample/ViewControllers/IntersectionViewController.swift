@@ -2,13 +2,15 @@ import UIEnvironment
 import UIKit
 
 final class IntersectionViewController: UIViewController {
-    @UIEnvironment(\.theme) private var theme: Theme
+    @UIEnvironment(\.theme) private var theme
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        theme.backgroundColor = .secondarySystemBackground
-        theme.titleFont = .boldSystemFont(ofSize: 24)
+        environment(\.theme, Theme(
+            titleFont: .boldSystemFont(ofSize: 24),
+            backgroundColor: .secondarySystemBackground
+        ))
 
         view.backgroundColor = theme.backgroundColor
 

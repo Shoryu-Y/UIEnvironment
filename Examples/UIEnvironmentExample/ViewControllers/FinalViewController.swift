@@ -22,7 +22,7 @@ final class FinalViewController: UIViewController {
 }
 
 final class ChildViewController: UIViewController {
-    @UIEnvironment(\.theme) private var theme: Theme
+    @UIEnvironment(\.theme) private var theme
 
     let titleLabel: UILabel = {
         let titleLabel = UILabel()
