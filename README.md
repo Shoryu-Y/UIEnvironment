@@ -5,7 +5,6 @@ UIEnvironment brings SwiftUI-style @Environment functionality to UIKit.
 ## Quick Start
 To register an environmental variable inside UIEnvironmentValues, you first create a type to conform to the UIEnvironmentKey protocol.
 ```swift
-
 struct Theme {
     var titleFont: UIFont
     var backgroundColor: UIColor
@@ -42,7 +41,7 @@ final class MyNavigationController: EnvironmentNavigationController {
 Finally, Access values inside your view controller.
 ```swift
 final class RootViewController: UIViewController {
-    @UIEnvironment(\.theme) private var theme: Theme
+    @UIEnvironment(\.theme) var theme
 
     override func viewDidLoad() {
         super.viewDidLoad()
