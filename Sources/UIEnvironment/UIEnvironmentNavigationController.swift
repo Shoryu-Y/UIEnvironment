@@ -53,7 +53,7 @@ open class UIEnvironmentNavigationController: UINavigationController {
 
     override open func popViewController(animated: Bool) -> UIViewController? {
         let lastIndex = environmentValuesStack.count - 1
-        pendingEnvironmentValues = environmentValuesStack[lastIndex - 1]
+        pendingEnvironmentValues = environmentValuesStack.values[lastIndex - 1]
         return super.popViewController(animated: animated)
     }
 }
