@@ -15,10 +15,11 @@ open class UIEnvironmentNavigationController: UINavigationController {
         }
 
         set {
-            guard let topViewController else {
-                return
+            if pendingEnvironmentValues != nil {
+                pendingEnvironmentValues = newValue
+            } else if let topViewController {
+                environmentValuesStack[topViewController.hash] = newValue
             }
-            environmentValuesStack[topViewController.hash] = newValue
         }
     }
 
@@ -59,10 +60,17 @@ open class UIEnvironmentNavigationController: UINavigationController {
 
 extension UIEnvironmentNavigationController: UINavigationControllerDelegate {
     open func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated _: Bool) {
+        defer {
+            pendingEnvironmentValues = nil
+        }
+
+        if let pendingEnvironmentValues {
+            environmentValuesStack[viewController.hash] = pendingEnvironmentValues
+        }
+
         if let index = environmentValuesStack.index(forKey: viewController.hash) {
             let popCount = environmentValuesStack.elements.count - (index + 1)
             environmentValuesStack.removeLast(popCount)
         }
-        pendingEnvironmentValues = nil
     }
 }
