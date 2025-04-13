@@ -24,10 +24,10 @@ open class UIEnvironmentNavigationController: UINavigationController {
 
     public init(
         rootViewController: UIViewController,
-        environmentValues: UIEnvironmentValues? = nil,
+        inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
         _ modifying: ((UIEnvironmentValues) -> UIEnvironmentValues)? = nil
     ) {
-        var environmentValues = environmentValues ?? UIEnvironmentValues()
+        var environmentValues = navigationController?.environmentValues ?? UIEnvironmentValues()
         if let modifying {
             environmentValues = modifying(environmentValues)
         }
@@ -63,7 +63,6 @@ extension UIEnvironmentNavigationController: UINavigationControllerDelegate {
             let popCount = environmentValuesStack.elements.count - (index + 1)
             environmentValuesStack.removeLast(popCount)
         }
-
         pendingEnvironmentValues = nil
     }
 }
