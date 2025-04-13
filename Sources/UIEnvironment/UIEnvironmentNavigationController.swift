@@ -2,7 +2,7 @@ import Collections
 import Foundation
 import UIKit
 
-open class EnvironmentNavigationController: UINavigationController, UINavigationControllerDelegate {
+open class UIEnvironmentNavigationController: UINavigationController {
     private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
 
     private var pendingEnvironmentValues: UIEnvironmentValues?
@@ -55,12 +55,10 @@ open class EnvironmentNavigationController: UINavigationController, UINavigation
         pendingEnvironmentValues = environmentValuesStack[lastIndex - 1]
         return super.popViewController(animated: animated)
     }
+}
 
-    open func navigationController(
-        _: UINavigationController,
-        didShow viewController: UIViewController,
-        animated _: Bool
-    ) {
+extension UIEnvironmentNavigationController: UINavigationControllerDelegate {
+    open func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated _: Bool) {
         if let index = environmentValuesStack.index(forKey: viewController.hash) {
             let popCount = environmentValuesStack.elements.count - (index + 1)
             environmentValuesStack.removeLast(popCount)

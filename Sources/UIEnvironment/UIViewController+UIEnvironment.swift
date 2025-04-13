@@ -3,9 +3,9 @@ import UIKit
 public extension UIViewController {
     var _environmentValues: UIEnvironmentValues {
         get {
-            if let navigationController = self as? EnvironmentNavigationController {
+            if let navigationController = self as? UIEnvironmentNavigationController {
                 navigationController.environmentValues
-            } else if let navigationController = navigationController as? EnvironmentNavigationController {
+            } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
                 navigationController.environmentValues
             } else {
                 UIEnvironmentValues()
@@ -13,9 +13,9 @@ public extension UIViewController {
         }
 
         set {
-            if let navigationController = self as? EnvironmentNavigationController {
+            if let navigationController = self as? UIEnvironmentNavigationController {
                 navigationController.environmentValues = newValue
-            } else if let navigationController = navigationController as? EnvironmentNavigationController {
+            } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
                 navigationController.environmentValues = newValue
             }
         }
