@@ -30,7 +30,7 @@ extension UIEnvironmentValues {
 
 Next, push the UIViewController that needs access to environment values onto an EnvironmentNavigationController, or a custom navigation controller that inherits from it.
 ```swift
-final class MyNavigationController: EnvironmentNavigationController {
+final class MyNavigationController: UIEnvironmentNavigationController {
     init() {
         super.init(rootViewController: RootViewController())
     }
