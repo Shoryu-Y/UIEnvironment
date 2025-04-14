@@ -36,8 +36,27 @@ public struct UIEnvironment<Value> {
     ) -> Value {
         get {
             let keyPath = instance[keyPath: storageKeyPath].keyPath
-            return instance._environmentValues[keyPath: keyPath]
+            if let environmentValues = instance._environmentValues?[keyPath: keyPath] {
+                return environmentValues
+            } else {
+                #if DEBUG
+                    let environment = instance[keyPath: storageKeyPath]
+                    Logger.warning("""
+                    \(environment.fileID):\(environment.line):\(environment.column):
+                    ⚠️ Warning: No UIEnvironmentNavigationController found in \(environment.function).
+                    
+                    A new default UIEnvironmentValues instance was returned instead.
+                    
+                    This may indicate that your view controller is not embedded in a UIEnvironmentNavigationController, or that the navigationController property has not been set yet (e.g. during viewDidLoad).
+                    
+                    Make sure to embed your view controller in a UIEnvironmentNavigationController (or its subclass), and access environment values only after the navigationController becomes available.
+                    """)
+                #endif
+
+                return UIEnvironmentValues()[keyPath: keyPath]
+            }
         }
+
         set {
             #if DEBUG
                 Logger.warning("""
@@ -48,7 +67,7 @@ public struct UIEnvironment<Value> {
             #endif
 
             let keyPath = instance[keyPath: storageKeyPath].keyPath
-            instance._environmentValues[keyPath: keyPath] = newValue
+            instance._environmentValues?[keyPath: keyPath] = newValue
         }
     }
 
@@ -62,7 +81,26 @@ public struct UIEnvironment<Value> {
 
     private let keyPath: WritableKeyPath<UIEnvironmentValues, Value>
 
-    public init(_ keyPath: WritableKeyPath<UIEnvironmentValues, Value>) {
+    private let filePath: StaticString
+    private let fileID: StaticString
+    private let line: UInt
+    private let column: UInt
+    private let function: StaticString
+
+    public init(
+        _ keyPath: WritableKeyPath<UIEnvironmentValues, Value>,
+        fileID: StaticString = #fileID,
+        filePath: StaticString = #filePath,
+        line: UInt = #line,
+        column: UInt = #column,
+        function: StaticString = #function
+    ) {
         self.keyPath = keyPath
+
+        self.filePath = filePath
+        self.fileID = fileID
+        self.line = line
+        self.column = column
+        self.function = function
     }
 }

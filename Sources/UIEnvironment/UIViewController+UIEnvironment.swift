@@ -12,9 +12,25 @@ extension UIViewController {
     ///   - value: The new value to assign.
     public func environment<Value: Sendable>(
         _ keyPath: WritableKeyPath<UIEnvironmentValues, Value>,
-        _ value: Value
+        _ value: Value,
+        fileID: StaticString = #fileID,
+        line: UInt = #line,
+        column: UInt = #column,
+        function: StaticString = #function
     ) {
-        _environmentValues[keyPath: keyPath] = value
+        #if DEBUG
+            if _environmentValues == nil {
+                Logger.warning("""
+                \(fileID):\(line):\(column):
+                ⚠️ Warning: No UIEnvironmentNavigationController found in \(function).
+                
+                This may indicate that your view controller is not embedded in a UIEnvironmentNavigationController, or that the navigationController property has not been set yet (e.g. during viewDidLoad).
+                
+                Make sure to embed your view controller in a UIEnvironmentNavigationController (or its subclass), and access environment values only after the navigationController becomes available.
+                """)
+            }
+        #endif
+        _environmentValues?[keyPath: keyPath] = value
     }
 
     /// Internal accessor for the view controller’s current `UIEnvironmentValues`.
@@ -24,31 +40,22 @@ extension UIViewController {
     ///
     /// If no compatible navigation controller is found, an empty
     /// `UIEnvironmentValues` instance is returned instead.
-    var _environmentValues: UIEnvironmentValues {
+    var _environmentValues: UIEnvironmentValues? {
         get {
             if let navigationController = self as? UIEnvironmentNavigationController {
-                return navigationController.environmentValues
+                navigationController.environmentValues
             } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
-                return navigationController.environmentValues
+                navigationController.environmentValues
             } else {
-                #if DEBUG
-                    Logger.warning("""
-                    ⚠️ UIEnvironment:
-                        No UIEnvironmentNavigationController found in the view controller hierarchy.
-                        A new default UIEnvironmentValues instance was returned instead.
-                    
-                        This may indicate that your view controller is not embedded in a UIEnvironmentNavigationController,
-                        or that the navigationController property has not been set yet (e.g. during viewDidLoad).
-
-                        Make sure to embed your view controller in a UIEnvironmentNavigationController (or its subclass),
-                        and access environment values only after the navigationController becomes available.
-                    """)
-                #endif
-                return UIEnvironmentValues()
+                nil
             }
         }
 
         set {
+            guard let newValue else {
+                return
+            }
+
             if let navigationController = self as? UIEnvironmentNavigationController {
                 navigationController.environmentValues = newValue
             } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
