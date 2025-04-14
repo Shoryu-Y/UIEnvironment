@@ -2,11 +2,26 @@ import Collections
 import Foundation
 import UIKit
 
+/// A custom `UINavigationController` subclass that manages and propagates
+/// environment values (`UIEnvironmentValues`) to its child view controllers.
+///
+/// This controller stores a stack of `UIEnvironmentValues` associated with each
+/// pushed `UIViewController`. When a view controller is pushed, the current
+/// environment values are copied forward.
+///
+/// Use this class (or a subclass) as your navigation controller when you need
+/// SwiftUI-style environment propagation in a UIKit-based app.
+///
+/// - Tip: Use in conjunction with `@UIEnvironment` property wrapper to access environment values.
 open class UIEnvironmentNavigationController: UINavigationController {
-    var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
-
-    var pendingEnvironmentValues: UIEnvironmentValues?
-
+    /// The environment values currently active for the navigation controller.
+    ///
+    /// When pushing a view controller, this value is automatically forwarded to the
+    /// destination. When popping, this value may be temporarily overridden by a pending
+    /// value during the transition.
+    ///
+    /// Use this property only if you need to manually read or update the current
+    /// environment state.
     public var environmentValues: UIEnvironmentValues {
         get {
             pendingEnvironmentValues
@@ -23,6 +38,17 @@ open class UIEnvironmentNavigationController: UINavigationController {
         }
     }
 
+    var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
+
+    var pendingEnvironmentValues: UIEnvironmentValues?
+
+    /// Creates a `UIEnvironmentNavigationController` with a root view controller and
+    /// optionally inherits or modifies the existing environment values.
+    ///
+    /// - Parameters:
+    ///   - rootViewController: The initial view controller.
+    ///   - inheritEnvironmentValuesFrom: Optionally inherit values from another `UIEnvironmentNavigationController`.
+    ///   - modifying: A closure to modify the inherited values before storing.
     public init(
         rootViewController: UIViewController,
         inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
