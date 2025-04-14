@@ -3,11 +3,11 @@ import Foundation
 import UIKit
 
 open class UIEnvironmentNavigationController: UINavigationController {
-    private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
+    var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
 
-    private var pendingEnvironmentValues: UIEnvironmentValues?
+    var pendingEnvironmentValues: UIEnvironmentValues?
 
-    var environmentValues: UIEnvironmentValues {
+    public var environmentValues: UIEnvironmentValues {
         get {
             pendingEnvironmentValues
                 ?? environmentValuesStack.values.last

@@ -1,6 +1,13 @@
 import UIKit
 
-public extension UIViewController {
+extension UIViewController {
+    public func environment<Value: Sendable>(
+        _ keyPath: WritableKeyPath<UIEnvironmentValues, Value>,
+        _ value: Value
+    ) {
+        _environmentValues[keyPath: keyPath] = value
+    }
+
     var _environmentValues: UIEnvironmentValues {
         get {
             if let navigationController = self as? UIEnvironmentNavigationController {
@@ -19,12 +26,5 @@ public extension UIViewController {
                 navigationController.environmentValues = newValue
             }
         }
-    }
-
-    func environment<Value: Sendable>(
-        _ keyPath: WritableKeyPath<UIEnvironmentValues, Value>,
-        _ value: Value
-    ) {
-        _environmentValues[keyPath: keyPath] = value
     }
 }
