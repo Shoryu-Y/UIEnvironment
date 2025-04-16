@@ -47,7 +47,7 @@ extension UIViewController {
             } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
                 navigationController.environmentValues
             } else {
-                nil
+                temporaryEnviromentValues
             }
         }
 
