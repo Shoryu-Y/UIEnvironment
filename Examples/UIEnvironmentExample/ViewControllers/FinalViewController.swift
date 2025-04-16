@@ -7,9 +7,9 @@ final class FinalViewController: UIViewController {
         super.viewDidLoad()
 
         let childViewController = ChildViewController()
+        addChild(childViewController)
         childViewController.view.translatesAutoresizingMaskIntoConstraints = false
 
-        addChild(childViewController)
         view.addSubview(childViewController.view)
         childViewController.didMove(toParent: self)
 
@@ -25,15 +25,15 @@ final class FinalViewController: UIViewController {
 final class ChildViewController: UIViewController {
     @UIEnvironment(\.theme) private var theme
 
-    let titleLabel: UILabel = {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        view.backgroundColor = theme.backgroundColor
+
         let titleLabel = UILabel()
         titleLabel.text = "Final"
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        return titleLabel
-    }()
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
+        titleLabel.font = theme.titleFont
 
         var configuration = UIButton.Configuration.plain()
         configuration.title = "Present"
@@ -58,19 +58,6 @@ final class ChildViewController: UIViewController {
             stackView.heightAnchor.constraint(lessThanOrEqualToConstant: 100),
         ])
     }
-
-    override func didMove(toParent parent: UIViewController?) {
-        super.didMove(toParent: parent)
-        view.backgroundColor = theme.backgroundColor
-        titleLabel.font = theme.titleFont
-    }
-
-//    override func viewWillAppear(_ animated: Bool) {
-//        super.viewWillAppear(animated)
-//
-//        view.backgroundColor = theme.backgroundColor
-//        titleLabel.font = theme.titleFont
-//    }
 }
 
 final class PresentedViewController: UIViewController {
