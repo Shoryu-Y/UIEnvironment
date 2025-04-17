@@ -46,8 +46,10 @@ extension UIViewController {
                 navigationController.environmentValues
             } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
                 navigationController.environmentValues
+            } else if let environmentValuesForPresented {
+                environmentValuesForPresented
             } else {
-                temporaryEnviromentValues
+                Self.findEnvironmentValuesInParentHierarchy(from: self)
             }
         }
 

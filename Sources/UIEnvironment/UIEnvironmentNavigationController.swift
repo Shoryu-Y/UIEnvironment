@@ -14,6 +14,10 @@ import UIKit
 ///
 /// - Tip: Use in conjunction with `@UIEnvironment` property wrapper to access environment values.
 open class UIEnvironmentNavigationController: UINavigationController {
+    private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
+
+    private var pendingEnvironmentValues: UIEnvironmentValues?
+
     /// The environment values currently active for the navigation controller.
     ///
     /// When pushing a view controller, this value is automatically forwarded to the
@@ -38,26 +42,20 @@ open class UIEnvironmentNavigationController: UINavigationController {
         }
     }
 
-    var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
-
-    var pendingEnvironmentValues: UIEnvironmentValues?
-
     /// Creates a `UIEnvironmentNavigationController` with a root view controller and
     /// optionally inherits or modifies the existing environment values.
     ///
     /// - Parameters:
     ///   - rootViewController: The initial view controller.
     ///   - inheritEnvironmentValuesFrom: Optionally inherit values from another `UIEnvironmentNavigationController`.
-    ///   - modifying: A closure to modify the inherited values before storing.
+    ///   - modify: A closure to modify the inherited values before storing.
     public init(
         rootViewController: UIViewController,
         inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
-        _ modifying: ((UIEnvironmentValues) -> UIEnvironmentValues)? = nil
+        modify: ((inout UIEnvironmentValues) -> Void)? = nil
     ) {
         var environmentValues = navigationController?.environmentValues ?? UIEnvironmentValues()
-        if let modifying {
-            environmentValues = modifying(environmentValues)
-        }
+        modify?(&environmentValues)
         environmentValuesStack = [rootViewController.hash: environmentValues]
         super.init(rootViewController: rootViewController)
     }
