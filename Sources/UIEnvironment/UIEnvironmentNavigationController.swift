@@ -14,6 +14,7 @@ import UIKit
 ///
 /// - Tip: Use in conjunction with `@UIEnvironment` property wrapper to access environment values.
 open class UIEnvironmentNavigationController: UINavigationController {
+//    private var childViewControllers:
     private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
 
     private var pendingEnvironmentValues: UIEnvironmentValues?
@@ -58,6 +59,8 @@ open class UIEnvironmentNavigationController: UINavigationController {
         modify?(&environmentValues)
         environmentValuesStack = [rootViewController.hash: environmentValues]
         super.init(rootViewController: rootViewController)
+
+        UIViewController.swizzle()
     }
 
     @available(*, unavailable)
