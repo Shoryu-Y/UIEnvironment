@@ -14,7 +14,7 @@ import UIKit
 ///
 /// - Tip: Use in conjunction with `@UIEnvironment` property wrapper to access environment values.
 open class UIEnvironmentNavigationController: UINavigationController {
-    private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
+    var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
 
     private var pendingEnvironmentValues: UIEnvironmentValues?
 

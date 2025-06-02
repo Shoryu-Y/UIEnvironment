@@ -13,7 +13,7 @@ extension UIViewController {
         animated: Bool,
         completion: (() -> Void)? = nil
     ) {
-        viewController.environmentValuesForPresented = self._environmentValues
+        viewController.environmentValuesForPresented = _environmentValues
         present(viewController, animated: animated, completion: completion)
     }
 

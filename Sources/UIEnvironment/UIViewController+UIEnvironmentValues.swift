@@ -23,9 +23,9 @@ extension UIViewController {
                 Logger.warning("""
                 \(fileID):\(line):\(column):
                 ⚠️ Warning: No UIEnvironmentNavigationController found in \(function).
-                
+
                 This may indicate that your view controller is not embedded in a UIEnvironmentNavigationController, or that the navigationController property has not been set yet (e.g. during viewDidLoad).
-                
+
                 Make sure to embed your view controller in a UIEnvironmentNavigationController (or its subclass), and access environment values only after the navigationController becomes available.
                 """)
             }
