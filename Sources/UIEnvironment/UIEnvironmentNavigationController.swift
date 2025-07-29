@@ -14,34 +14,6 @@ import UIKit
 ///
 /// - Tip: Use in conjunction with `@UIEnvironment` property wrapper to access environment values.
 open class UIEnvironmentNavigationController: UINavigationController {
-//    private var childViewControllers:
-    private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
-
-    private var pendingEnvironmentValues: UIEnvironmentValues?
-
-    /// The environment values currently active for the navigation controller.
-    ///
-    /// When pushing a view controller, this value is automatically forwarded to the
-    /// destination. When popping, this value may be temporarily overridden by a pending
-    /// value during the transition.
-    ///
-    /// Use this property only if you need to manually read or update the current
-    /// environment state.
-    public var environmentValues: UIEnvironmentValues {
-        get {
-            pendingEnvironmentValues
-                ?? environmentValuesStack.values.last
-                ?? UIEnvironmentValues()
-        }
-
-        set {
-            if pendingEnvironmentValues != nil {
-                pendingEnvironmentValues = newValue
-            } else if let topViewController {
-                environmentValuesStack[topViewController.hash] = newValue
-            }
-        }
-    }
 
     /// Creates a `UIEnvironmentNavigationController` with a root view controller and
     /// optionally inherits or modifies the existing environment values.
@@ -50,12 +22,13 @@ open class UIEnvironmentNavigationController: UINavigationController {
     ///   - rootViewController: The initial view controller.
     ///   - inheritEnvironmentValuesFrom: Optionally inherit values from another `UIEnvironmentNavigationController`.
     ///   - modify: A closure to modify the inherited values before storing.
+    ///
     public init(
         rootViewController: UIViewController,
         inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
         modify: ((inout UIEnvironmentValues) -> Void)? = nil
     ) {
-        var environmentValues = navigationController?.environmentValues ?? UIEnvironmentValues()
+        var environmentValues = navigationController?.environmentValuesStack.values.last ?? UIEnvironmentValues()
         modify?(&environmentValues)
         environmentValuesStack = [rootViewController.hash: environmentValues]
         super.init(rootViewController: rootViewController)
@@ -68,36 +41,137 @@ open class UIEnvironmentNavigationController: UINavigationController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
+
+    private var familyTree: [Int: FamilyRelationship] = [:]
+
     override open func viewDidLoad() {
         super.viewDidLoad()
         delegate = self
     }
 
     override open func pushViewController(_ viewController: UIViewController, animated: Bool) {
-        environmentValuesStack[viewController.hash] = environmentValues
+        environmentValuesStack[viewController.hash] = environmentValuesStack.values.last ?? UIEnvironmentValues()
         super.pushViewController(viewController, animated: animated)
     }
+}
 
-    override open func popViewController(animated: Bool) -> UIViewController? {
-        let lastIndex = environmentValuesStack.count - 1
-        pendingEnvironmentValues = environmentValuesStack.values[lastIndex - 1]
-        return super.popViewController(animated: animated)
+extension UIEnvironmentNavigationController {
+    struct FamilyRelationship {
+        var children: Set<Int>
+        var environmentValues: UIEnvironmentValues
+
+        mutating func addChild(_ child: Int) {
+            children.insert(child)
+        }
+
+        mutating func removeChild(_ child: Int) {
+            if let index = children.firstIndex(of: child) {
+                children.remove(at: index)
+            }
+        }
+
+        mutating func update(_ newValue: UIEnvironmentValues) {
+            environmentValues = newValue
+        }
+    }
+
+    private func descendants(of parentHash: Int) -> [Int] {
+        if let relationShip = familyTree[parentHash] {
+            return relationShip.children + relationShip.children.flatMap { descendants(of: $0) }
+        }
+        return []
+    }
+
+    func environmentValues(of viewController: UIViewController) -> UIEnvironmentValues {
+        if let environmentValues = environmentValuesStack[viewController.hash] {
+            environmentValues
+        } else if let familyRelationship = familyTree[viewController.hash] {
+            familyRelationship.environmentValues
+        } else {
+            UIEnvironmentValues()
+        }
+    }
+
+    func setEnvironmentValues(
+        _ environmentValues: UIEnvironmentValues,
+        to viewController: UIViewController
+    ) {
+        let hash = viewController.hash
+
+        switch (environmentValuesStack[hash], familyTree[hash]) {
+        case (.none, .none):
+            // pushによって初めてUIViewControllerがnavigationStackに積まれるパターン。
+            environmentValuesStack[hash] = environmentValues
+            familyTree[hash] = FamilyRelationship(
+                children: [],
+                environmentValues: environmentValues
+            )
+
+        case (.some, .none):
+            // おそらくあり得ないパターン。
+            // 念の為に`environmentValuesStack`と`familyTree`どちらも更新する。
+            environmentValuesStack[hash] = environmentValues
+            familyTree[hash] = FamilyRelationship(
+                children: [],
+                environmentValues: environmentValues
+            )
+
+        case var (.none, .some(relationship)):
+            // childViewControllerに対してenvironmentValueを設定するパターン。
+            relationship.update(environmentValues)
+            familyTree.updateValue(relationship, forKey: hash)
+
+        case var (.some, .some(relationship)):
+            // navigationStackに既に積まれているUIViewControllerのenvironmentValueを設定するパターン。
+            environmentValuesStack[hash] = environmentValues
+            relationship.update(environmentValues)
+            familyTree.updateValue(relationship, forKey: hash)
+        }
+
+        for child in descendants(of: hash) {
+            if var familyRelationship = familyTree[child] {
+                familyRelationship.update(environmentValues)
+                familyTree.updateValue(familyRelationship, forKey: child)
+            }
+        }
+    }
+
+    func appendRelationship(
+        viewController: UIViewController,
+        with childViewController: UIViewController
+    ) {
+        let parentHash = viewController.hash
+        let childHash = childViewController.hash
+
+        familyTree[childHash] = FamilyRelationship(
+            children: [],
+            environmentValues: environmentValues(of: viewController)
+        )
+
+        if var relationship = familyTree[parentHash] {
+            relationship.addChild(childHash)
+            familyTree.updateValue(relationship, forKey: parentHash)
+        } else {
+            familyTree[parentHash] = FamilyRelationship(
+                children: [childHash],
+                environmentValues: environmentValues(of: viewController)
+            )
+        }
     }
 }
 
 extension UIEnvironmentNavigationController: UINavigationControllerDelegate {
     open func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated _: Bool) {
-        defer {
-            pendingEnvironmentValues = nil
+        guard let index = environmentValuesStack.index(forKey: viewController.hash) else {
+            return
         }
 
-        if let pendingEnvironmentValues {
-            environmentValuesStack[viewController.hash] = pendingEnvironmentValues
-        }
-
-        if let index = environmentValuesStack.index(forKey: viewController.hash) {
-            let popCount = environmentValuesStack.elements.count - (index + 1)
-            environmentValuesStack.removeLast(popCount)
+        for key in environmentValuesStack.keys.suffix(from: index + 1) {
+            environmentValuesStack.removeValue(forKey: key)
+            for child in descendants(of: key) {
+                familyTree.removeValue(forKey: child)
+            }
         }
     }
 }

@@ -42,14 +42,12 @@ extension UIViewController {
     /// `UIEnvironmentValues` instance is returned instead.
     var _environmentValues: UIEnvironmentValues? {
         get {
-            if let navigationController = self as? UIEnvironmentNavigationController {
-                navigationController.environmentValues
-            } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
-                navigationController.environmentValues
+            if let navigationController = navigationController as? UIEnvironmentNavigationController {
+                navigationController.environmentValues(of: self)
             } else if let environmentValuesForPresented {
                 environmentValuesForPresented
             } else {
-                Self.findEnvironmentValuesInParentHierarchy(from: self)
+                nil
             }
         }
 
@@ -58,10 +56,9 @@ extension UIViewController {
                 return
             }
 
-            if let navigationController = self as? UIEnvironmentNavigationController {
-                navigationController.environmentValues = newValue
-            } else if let navigationController = navigationController as? UIEnvironmentNavigationController {
-                navigationController.environmentValues = newValue
+            if let navigationController = navigationController as? UIEnvironmentNavigationController {
+                navigationController.setEnvironmentValues(newValue, to: self)
+                UIEnvironmentNotification.post()
             }
         }
     }

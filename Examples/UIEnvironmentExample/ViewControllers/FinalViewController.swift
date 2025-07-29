@@ -31,7 +31,7 @@ final class ChildViewController: UIViewController {
         view.backgroundColor = theme.backgroundColor
 
         let titleLabel = UILabel()
-        titleLabel.text = "Final"
+        titleLabel.text = theme.title
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = theme.titleFont
 
@@ -65,7 +65,6 @@ final class PresentedViewController: UIViewController {
 
     let titleLabel: UILabel = {
         let titleLabel = UILabel()
-        titleLabel.text = "Presented"
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         return titleLabel
     }()
@@ -74,6 +73,7 @@ final class PresentedViewController: UIViewController {
         super.viewDidLoad()
 
         view.backgroundColor = theme.backgroundColor
+        titleLabel.text = theme.title
         titleLabel.font = theme.titleFont
 
         view.addSubview(titleLabel)

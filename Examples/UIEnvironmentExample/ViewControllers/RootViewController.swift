@@ -20,7 +20,7 @@ final class RootViewController: UIViewController {
 
         let titleLabel = UILabel()
         titleLabel.font = theme.titleFont
-        titleLabel.text = "Root"
+        titleLabel.text = theme.title
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         var configuration = UIButton.Configuration.plain()

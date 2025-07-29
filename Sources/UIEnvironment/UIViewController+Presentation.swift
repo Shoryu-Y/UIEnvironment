@@ -14,20 +14,9 @@ extension UIViewController {
         completion: (() -> Void)? = nil
     ) {
         viewController.environmentValuesForPresented = self._environmentValues
-        present(viewController, animated: animated, completion: completion)
-    }
-
-    static func findEnvironmentValuesInParentHierarchy(
-        from viewController: UIViewController
-    ) -> UIEnvironmentValues? {
-        guard let parent = viewController.parent else {
-            return nil
-        }
-
-        return if let environmentValue = parent._environmentValues {
-            environmentValue
-        } else {
-            findEnvironmentValuesInParentHierarchy(from: parent)
+        present(viewController, animated: animated) { [weak self] in
+            self?.environmentValuesForPresented = nil
+            completion?()
         }
     }
 }

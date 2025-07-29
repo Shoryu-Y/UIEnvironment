@@ -4,20 +4,28 @@ import UIKit
 final class IntersectionViewController: UIViewController {
     @UIEnvironment(\.theme) private var theme
 
+    let titleLabel = UILabel()
+
+    let themeEditButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Edit Theme", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        return button
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         environment(\.theme, Theme(
+            title: "Intersection",
             titleFont: .boldSystemFont(ofSize: 24),
             backgroundColor: .secondarySystemBackground
         ))
 
         view.backgroundColor = theme.backgroundColor
 
-        let titleLabel = UILabel()
         titleLabel.font = theme.titleFont
-        titleLabel.text = "Intersection"
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.text = theme.title
 
         var configuration = UIButton.Configuration.plain()
         configuration.title = "Next"
@@ -30,7 +38,18 @@ final class IntersectionViewController: UIViewController {
             for: .touchUpInside
         )
 
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, button])
+        themeEditButton.addAction(
+            .init { [weak self]_ in
+                let viewController = ThemeEditModalViewController()
+                viewController.onEndEditing = { [weak self] theme in
+                    self?.environment(\.theme, theme)
+                }
+                self?.presentWithEnvironment(viewController, animated: true)
+            },
+            for: .touchUpInside
+        )
+
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, button, themeEditButton])
         stackView.axis = .vertical
         stackView.alignment = .center
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -41,5 +60,11 @@ final class IntersectionViewController: UIViewController {
             stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             stackView.heightAnchor.constraint(lessThanOrEqualToConstant: 100),
         ])
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        view.backgroundColor = theme.backgroundColor
     }
 }

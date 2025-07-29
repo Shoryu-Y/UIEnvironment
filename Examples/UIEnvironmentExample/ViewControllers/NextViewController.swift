@@ -11,7 +11,7 @@ final class NextViewController: UIViewController {
 
         let titleLabel = UILabel()
         titleLabel.font = theme.titleFont
-        titleLabel.text = "Next"
+        titleLabel.text = theme.title
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         var configuration = UIButton.Configuration.plain()
