@@ -28,7 +28,7 @@ enum UIEnvironmentNotification {
     }
 }
 
-extension UIViewController {
+public extension UIViewController {
     func registerViewIsAppearing(_ viewIsAppearing: @escaping (Bool) -> Void) {
         viewIsAppearingRegistered = viewIsAppearing
     }
