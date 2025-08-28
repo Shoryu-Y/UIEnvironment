@@ -75,10 +75,21 @@ extension UIEnvironmentNavigationController {
         for childHash in descendants(of: viewController.hash) {
             if environmentValuesStack[childHash] != nil {
                 environmentValuesStack[childHash] = environmentValues
-                UIEnvironmentNotification.post(with: childHash)
             }
+            UIEnvironmentNotification.post(with: childHash)
+        }
+    }
+
+    func makeRelationshipUntilAncestor(_ viewController: UIViewController) {
+        guard let parent = viewController.parent else {
+            return
         }
 
+        if relationships[parent.hash] != nil {
+            return
+        }
+
+        relationships[parent.hash] = Relationship(children: [viewController.hash])
         makeRelationshipUntilAncestor(viewController)
     }
 
@@ -87,18 +98,5 @@ extension UIEnvironmentNavigationController {
             return relationShip.children + relationShip.children.flatMap { descendants(of: $0) }
         }
         return []
-    }
-
-    private func makeRelationshipUntilAncestor(_ viewController: UIViewController) {
-        guard let parent = viewController.parent else {
-            return
-        }
-
-        if let relationship = relationships[parent.hash] {
-            return
-        }
-
-        relationships[parent.hash] = Relationship(children: [viewController.hash])
-        makeRelationshipUntilAncestor(viewController)
     }
 }
