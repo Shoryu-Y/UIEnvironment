@@ -10,19 +10,19 @@ import UIKit
 
 @MainActor
 enum UIEnvironmentNotification {
-    enum Name {
-        static let environmentValuesDidChange = Notification.Name("UIEnvironmentNotification.UIEnvironmentValuesDidChange")
+    static func makeNotificationName(hash: Int) -> Notification.Name {
+        Notification.Name("UIEnvironmentNotification.UIEnvironmentValuesDidChange.\(hash)")
     }
 
-    static func post() {
-        NotificationCenter.default.post(name: Name.environmentValuesDidChange, object: nil)
+    static func post(with hash: Int) {
+        NotificationCenter.default.post(name: makeNotificationName(hash: hash), object: nil)
     }
 
     static func observe(_ observer: UIViewController) {
         NotificationCenter.default.addObserver(
             observer,
             selector: #selector(UIViewController.didReceiveEnvironmentValuesNotification(_:)),
-            name: Name.environmentValuesDidChange,
+            name: makeNotificationName(hash: observer.hash),
             object: nil
         )
     }
