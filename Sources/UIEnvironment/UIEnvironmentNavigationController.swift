@@ -44,10 +44,10 @@ open class UIEnvironmentNavigationController: UINavigationController {
     }
 
     struct Relationship {
-        var children: [Int] = []
+        var children: Set<Int> = []
 
         mutating func addChild(_ child: Int) {
-            children.append(child)
+            children.insert(child)
         }
     }
 
@@ -87,7 +87,9 @@ extension UIEnvironmentNavigationController {
             return
         }
 
-        if relationships[parent.hash] != nil {
+        if var relationship = relationships[parent.hash] {
+            relationship.addChild(viewController.hash)
+            relationships.updateValue(relationship, forKey: parent.hash)
             return
         }
 
