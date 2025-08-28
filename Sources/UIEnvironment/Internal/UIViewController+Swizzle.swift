@@ -26,11 +26,6 @@ extension UIViewController {
             originalSelector: #selector(UIViewController.viewDidLayoutSubviews),
             swizzledSelector: #selector(UIViewController.uiEnvironment_viewDidLayoutSubviews)
         )
-
-        _swizzle(
-            originalSelector:  #selector(UIViewController.addChild(_:)),
-            swizzledSelector: #selector(UIViewController.uiEnvironment_addChild(_:))
-        )
     }
 
     private static func _swizzle(originalSelector: Selector, swizzledSelector: Selector) {
@@ -65,13 +60,5 @@ extension UIViewController {
         uiEnvironment_viewDidLayoutSubviews()
 
         registerViewDidLayoutSubviews(uiEnvironment_viewDidLayoutSubviews)
-    }
-
-    @objc func uiEnvironment_addChild(_ childController: UIViewController) {
-        uiEnvironment_addChild(childController)
-
-        if let navigationController = navigationController as? UIEnvironmentNavigationController {
-            navigationController.appendRelationship(viewController: self, with: childController)
-        }
     }
 }
