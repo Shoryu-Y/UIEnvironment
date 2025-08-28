@@ -25,15 +25,15 @@ open class UIEnvironmentNavigationController: UINavigationController {
     ///
     public init(
         rootViewController: UIViewController,
-        inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
-        modify: ((inout UIEnvironmentValues) -> Void)? = nil
+        with environmentValue: UIEnvironmentValues? = nil
     ) {
-        var environmentValues = navigationController?.environmentValuesStack.values.last ?? UIEnvironmentValues()
-        modify?(&environmentValues)
-        environmentValuesStack = [rootViewController.hash: environmentValues]
+        UIViewController.swizzle()
         super.init(rootViewController: rootViewController)
 
-        UIViewController.swizzle()
+        familyTree[rootViewController.hashValue] = .init(
+            children: [],
+            environmentValues: environmentValue ?? UIEnvironmentValues()
+        )
     }
 
     @available(*, unavailable)
@@ -41,19 +41,7 @@ open class UIEnvironmentNavigationController: UINavigationController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
-
     private var familyTree: [Int: FamilyRelationship] = [:]
-
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        delegate = self
-    }
-
-    override open func pushViewController(_ viewController: UIViewController, animated: Bool) {
-        environmentValuesStack[viewController.hash] = environmentValuesStack.values.last ?? UIEnvironmentValues()
-        super.pushViewController(viewController, animated: animated)
-    }
 }
 
 extension UIEnvironmentNavigationController {
@@ -83,13 +71,11 @@ extension UIEnvironmentNavigationController {
         return []
     }
 
-    func environmentValues(of viewController: UIViewController) -> UIEnvironmentValues {
-        if let environmentValues = environmentValuesStack[viewController.hash] {
-            environmentValues
-        } else if let familyRelationship = familyTree[viewController.hash] {
+    func environmentValues(of viewController: UIViewController) -> UIEnvironmentValues? {
+        if let familyRelationship = familyTree[viewController.hash] {
             familyRelationship.environmentValues
         } else {
-            UIEnvironmentValues()
+            nil
         }
     }
 
@@ -99,34 +85,14 @@ extension UIEnvironmentNavigationController {
     ) {
         let hash = viewController.hash
 
-        switch (environmentValuesStack[hash], familyTree[hash]) {
-        case (.none, .none):
-            // pushによって初めてUIViewControllerがnavigationStackに積まれるパターン。
-            environmentValuesStack[hash] = environmentValues
+        if var relationship = familyTree[hash] {
+            relationship.update(environmentValues)
+            familyTree.updateValue(relationship, forKey: hash)
+        } else {
             familyTree[hash] = FamilyRelationship(
                 children: [],
                 environmentValues: environmentValues
             )
-
-        case (.some, .none):
-            // おそらくあり得ないパターン。
-            // 念の為に`environmentValuesStack`と`familyTree`どちらも更新する。
-            environmentValuesStack[hash] = environmentValues
-            familyTree[hash] = FamilyRelationship(
-                children: [],
-                environmentValues: environmentValues
-            )
-
-        case var (.none, .some(relationship)):
-            // childViewControllerに対してenvironmentValueを設定するパターン。
-            relationship.update(environmentValues)
-            familyTree.updateValue(relationship, forKey: hash)
-
-        case var (.some, .some(relationship)):
-            // navigationStackに既に積まれているUIViewControllerのenvironmentValueを設定するパターン。
-            environmentValuesStack[hash] = environmentValues
-            relationship.update(environmentValues)
-            familyTree.updateValue(relationship, forKey: hash)
         }
 
         for child in descendants(of: hash) {
@@ -144,34 +110,26 @@ extension UIEnvironmentNavigationController {
         let parentHash = viewController.hash
         let childHash = childViewController.hash
 
-        familyTree[childHash] = FamilyRelationship(
-            children: [],
-            environmentValues: environmentValues(of: viewController)
-        )
+        let parentRelationship = familyTree[parentHash]
+        let childRelationship = familyTree[childHash]
 
-        if var relationship = familyTree[parentHash] {
-            relationship.addChild(childHash)
-            familyTree.updateValue(relationship, forKey: parentHash)
-        } else {
-            familyTree[parentHash] = FamilyRelationship(
-                children: [childHash],
-                environmentValues: environmentValues(of: viewController)
-            )
-        }
-    }
-}
+        switch (parentRelationship, childRelationship) {
+        case var (.some(parentRelationship), .none):
+            parentRelationship.addChild(childHash)
+            familyTree.updateValue(parentRelationship, forKey: parentHash)
+            familyTree[childHash] = FamilyRelationship(children: [], environmentValues: parentRelationship.environmentValues)
 
-extension UIEnvironmentNavigationController: UINavigationControllerDelegate {
-    open func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated _: Bool) {
-        guard let index = environmentValuesStack.index(forKey: viewController.hash) else {
-            return
-        }
+        case var (.some(parentRelationship), .some):
+            parentRelationship.addChild(childHash)
+            familyTree.updateValue(parentRelationship, forKey: parentHash)
+            setEnvironmentValues(parentRelationship.environmentValues, to: viewController)
 
-        for key in environmentValuesStack.keys.suffix(from: index + 1) {
-            environmentValuesStack.removeValue(forKey: key)
-            for child in descendants(of: key) {
-                familyTree.removeValue(forKey: child)
-            }
+        case (.none, .some):
+            familyTree[parentHash] = FamilyRelationship(children: [childHash], environmentValues: UIEnvironmentValues())
+
+        case (.none, .none):
+            familyTree[parentHash] = FamilyRelationship(children: [childHash], environmentValues: UIEnvironmentValues())
+            familyTree[childHash] = FamilyRelationship(children: [], environmentValues: UIEnvironmentValues())
         }
     }
 }
