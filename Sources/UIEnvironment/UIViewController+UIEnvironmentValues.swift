@@ -58,7 +58,6 @@ extension UIViewController {
 
             if let navigationController = navigationController as? UIEnvironmentNavigationController {
                 navigationController.setEnvironmentValues(newValue, to: self)
-                UIEnvironmentNotification.post()
             }
         }
     }
