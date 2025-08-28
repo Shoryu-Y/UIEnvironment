@@ -25,14 +25,22 @@ open class UIEnvironmentNavigationController: UINavigationController {
     ///
     public init(
         rootViewController: UIViewController,
-        with environmentValue: UIEnvironmentValues? = nil
+        inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
+        modify: ((inout UIEnvironmentValues) -> Void)? = nil
     ) {
         UIViewController.swizzle()
         super.init(rootViewController: rootViewController)
 
+        var environmentValue = if let navigationController, let topViewController = navigationController.topViewController {
+            navigationController.environmentValues(of: topViewController) ?? UIEnvironmentValues()
+        } else {
+            UIEnvironmentValues()
+        }
+        modify?(&environmentValue)
+
         familyTree[rootViewController.hashValue] = .init(
             children: [],
-            environmentValues: environmentValue ?? UIEnvironmentValues()
+            environmentValues: environmentValue
         )
     }
 
