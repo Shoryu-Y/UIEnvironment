@@ -30,24 +30,27 @@ enum UIEnvironmentNotification {
 
 public extension UIViewController {
     func registerViewIsAppearing(_ viewIsAppearing: @escaping (Bool) -> Void) {
-        viewIsAppearingRegistered = viewIsAppearing
         if let navigationController = navigationController as? UIEnvironmentNavigationController {
             navigationController.makeRelationshipUntilAncestor(self)
         }
+        viewIsAppearing(true)
+        viewIsAppearingRegistered = viewIsAppearing
     }
 
     func registerViewWillLayoutSubviews(_ viewWillLayoutSubviews: @escaping () -> Void) {
-        viewWillLayoutSubviewsRegistered = viewWillLayoutSubviews
         if let navigationController = navigationController as? UIEnvironmentNavigationController {
             navigationController.makeRelationshipUntilAncestor(self)
         }
+        viewWillLayoutSubviews()
+        viewWillLayoutSubviewsRegistered = viewWillLayoutSubviews
     }
 
     func registerViewDidLayoutSubviews(_ viewDidLayoutSubviews: @escaping () -> Void) {
-        viewDidLayoutSubviewsRegistered = viewDidLayoutSubviews
         if let navigationController = navigationController as? UIEnvironmentNavigationController {
             navigationController.makeRelationshipUntilAncestor(self)
         }
+        viewDidLayoutSubviews()
+        viewDidLayoutSubviewsRegistered = viewDidLayoutSubviews
     }
 }
 
