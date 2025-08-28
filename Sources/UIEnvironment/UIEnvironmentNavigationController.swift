@@ -28,9 +28,10 @@ open class UIEnvironmentNavigationController: UINavigationController {
         inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
         modify: ((inout UIEnvironmentValues) -> Void)? = nil
     ) {
-        var environmentValue = navigationController?.environmentValuesStack.values.last ?? UIEnvironmentValues()
-        modify?(&environmentValue)
-        environmentValuesStack = [rootViewController.hash: environmentValue]
+        environmentValues = navigationController?.environmentValuesStack.values.last ?? UIEnvironmentValues()
+        modify?(&environmentValues)
+
+        environmentValuesStack = [rootViewController.hash: environmentValues]
         relationships = [rootViewController.hash: Relationship()]
         super.init(rootViewController: rootViewController)
 
@@ -50,18 +51,19 @@ open class UIEnvironmentNavigationController: UINavigationController {
         }
     }
 
+    private var environmentValues: UIEnvironmentValues
     private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
     private var relationships: [Int: Relationship]
 }
 
 extension UIEnvironmentNavigationController {
-    func environmentValues(of viewController: UIViewController) -> UIEnvironmentValues? {
+    func environmentValues(of viewController: UIViewController) -> UIEnvironmentValues {
         if let environmentValues = environmentValuesStack[viewController.hash] {
             environmentValues
         } else if let parentViewController = viewController.parent {
             environmentValues(of: parentViewController)
         } else {
-            nil
+            environmentValues
         }
     }
 
