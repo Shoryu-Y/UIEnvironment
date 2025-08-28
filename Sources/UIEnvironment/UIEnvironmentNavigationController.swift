@@ -82,6 +82,8 @@ extension UIEnvironmentNavigationController {
     func environmentValues(of viewController: UIViewController) -> UIEnvironmentValues? {
         if let familyRelationship = familyTree[viewController.hash] {
             familyRelationship.environmentValues
+        } else if let parentViewController = viewController.parent {
+            environmentValues(of: parentViewController)
         } else {
             nil
         }
