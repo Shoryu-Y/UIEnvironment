@@ -1,11 +1,3 @@
-//
-//  ThemeEditModalViewController.swift
-//  UIEnvironmentExample
-//
-//  Created by tatsubee on 2025/07/29.
-//  Copyright © 2025 pixiv Inc. All rights reserved.
-//
-
 import UIEnvironment
 import UIKit
 
