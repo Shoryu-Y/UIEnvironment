@@ -14,33 +14,6 @@ import UIKit
 ///
 /// - Tip: Use in conjunction with `@UIEnvironment` property wrapper to access environment values.
 open class UIEnvironmentNavigationController: UINavigationController {
-    var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
-
-    private var pendingEnvironmentValues: UIEnvironmentValues?
-
-    /// The environment values currently active for the navigation controller.
-    ///
-    /// When pushing a view controller, this value is automatically forwarded to the
-    /// destination. When popping, this value may be temporarily overridden by a pending
-    /// value during the transition.
-    ///
-    /// Use this property only if you need to manually read or update the current
-    /// environment state.
-    public var environmentValues: UIEnvironmentValues {
-        get {
-            pendingEnvironmentValues
-                ?? environmentValuesStack.values.last
-                ?? UIEnvironmentValues()
-        }
-
-        set {
-            if pendingEnvironmentValues != nil {
-                pendingEnvironmentValues = newValue
-            } else if let topViewController {
-                environmentValuesStack[topViewController.hash] = newValue
-            }
-        }
-    }
 
     /// Creates a `UIEnvironmentNavigationController` with a root view controller and
     /// optionally inherits or modifies the existing environment values.
@@ -49,15 +22,20 @@ open class UIEnvironmentNavigationController: UINavigationController {
     ///   - rootViewController: The initial view controller.
     ///   - inheritEnvironmentValuesFrom: Optionally inherit values from another `UIEnvironmentNavigationController`.
     ///   - modify: A closure to modify the inherited values before storing.
+    ///
     public init(
         rootViewController: UIViewController,
         inheritEnvironmentValuesFrom navigationController: UIEnvironmentNavigationController? = nil,
         modify: ((inout UIEnvironmentValues) -> Void)? = nil
     ) {
-        var environmentValues = navigationController?.environmentValues ?? UIEnvironmentValues()
+        environmentValues = navigationController?.environmentValuesStack.values.last ?? UIEnvironmentValues()
         modify?(&environmentValues)
+
         environmentValuesStack = [rootViewController.hash: environmentValues]
+        relationships = [rootViewController.hash: Relationship()]
         super.init(rootViewController: rootViewController)
+
+        UIViewController.swizzle()
     }
 
     @available(*, unavailable)
@@ -65,36 +43,64 @@ open class UIEnvironmentNavigationController: UINavigationController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        delegate = self
+    struct Relationship {
+        var children: Set<Int> = []
+
+        mutating func addChild(_ child: Int) {
+            children.insert(child)
+        }
     }
 
-    override open func pushViewController(_ viewController: UIViewController, animated: Bool) {
-        environmentValuesStack[viewController.hash] = environmentValues
-        super.pushViewController(viewController, animated: animated)
-    }
-
-    override open func popViewController(animated: Bool) -> UIViewController? {
-        let lastIndex = environmentValuesStack.count - 1
-        pendingEnvironmentValues = environmentValuesStack.values[lastIndex - 1]
-        return super.popViewController(animated: animated)
-    }
+    private var environmentValues: UIEnvironmentValues
+    private var environmentValuesStack: OrderedDictionary<Int, UIEnvironmentValues>
+    private var relationships: [Int: Relationship]
 }
 
-extension UIEnvironmentNavigationController: UINavigationControllerDelegate {
-    open func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated _: Bool) {
-        defer {
-            pendingEnvironmentValues = nil
+extension UIEnvironmentNavigationController {
+    func environmentValues(of viewController: UIViewController) -> UIEnvironmentValues {
+        if let environmentValues = environmentValuesStack[viewController.hash] {
+            environmentValues
+        } else if let parentViewController = viewController.parent {
+            environmentValues(of: parentViewController)
+        } else {
+            environmentValues
+        }
+    }
+
+    func setEnvironmentValues(
+        _ environmentValues: UIEnvironmentValues,
+        to viewController: UIViewController
+    ) {
+        environmentValuesStack[viewController.hash] = environmentValues
+        UIEnvironmentNotification.post(with: viewController.hash)
+
+        for childHash in descendants(of: viewController.hash) {
+            if environmentValuesStack[childHash] != nil {
+                environmentValuesStack[childHash] = environmentValues
+            }
+            UIEnvironmentNotification.post(with: childHash)
+        }
+    }
+
+    func makeRelationshipUntilAncestor(_ viewController: UIViewController) {
+        guard let parent = viewController.parent else {
+            return
         }
 
-        if let pendingEnvironmentValues {
-            environmentValuesStack[viewController.hash] = pendingEnvironmentValues
+        if var relationship = relationships[parent.hash] {
+            relationship.addChild(viewController.hash)
+            relationships.updateValue(relationship, forKey: parent.hash)
+            return
         }
 
-        if let index = environmentValuesStack.index(forKey: viewController.hash) {
-            let popCount = environmentValuesStack.elements.count - (index + 1)
-            environmentValuesStack.removeLast(popCount)
+        relationships[parent.hash] = Relationship(children: [viewController.hash])
+        makeRelationshipUntilAncestor(viewController)
+    }
+
+    private func descendants(of parentHash: Int) -> [Int] {
+        if let relationShip = relationships[parentHash] {
+            return relationShip.children + relationShip.children.flatMap { descendants(of: $0) }
         }
+        return []
     }
 }
